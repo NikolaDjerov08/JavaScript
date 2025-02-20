@@ -1,7 +1,7 @@
 body {
     margin: 0;
     overflow: hidden;
-    background: orange;
+    background: rgb(255, 255, 255);
 }
 #container {
     width: 100vw;

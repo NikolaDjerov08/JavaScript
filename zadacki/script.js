@@ -3,8 +3,9 @@ const scene = new THREE.Scene();
 scene.background = new THREE.Color(0xffffff); // Set background to white
 
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-const renderer = new THREE.WebGLRenderer();
+const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.shadowMap.enabled = true; // Enable shadows
 document.getElementById("container").appendChild(renderer.domElement);
 
 // Function to create striped texture dynamically
@@ -15,31 +16,37 @@ function createStripedTexture() {
     canvas.height = size;
     const ctx = canvas.getContext("2d");
 
-    // Fill background
-    ctx.fillStyle = "orange"; 
+    // Fill background gray
+    ctx.fillStyle = "#808080"; // Gray color
     ctx.fillRect(0, 0, size, size);
 
-    // Draw stripes
-    ctx.fillStyle = "#6a187d"; 
-    for (let i = 0; i < size; i += 50) {
-        ctx.fillRect(0, i, size, 10); // 10px red stripe every 50px
+    // Draw red stripes
+    ctx.fillStyle = "#ff0000"; // Red color
+    for (let i = 20; i < size; i += 100) { // More spaced-out stripes
+        ctx.fillRect(0, i, size, 15); // 15px thick red stripe
     }
 
     return new THREE.CanvasTexture(canvas);
 }
 
-// Rocket body (Gray with red lines)
+// Rocket body (Gray with red stripes, smooth shading)
 const bodyGeometry = new THREE.CylinderGeometry(1, 1, 5, 64);
-const bodyMaterial = new THREE.MeshStandardMaterial({ 
-    map: createStripedTexture() // Apply generated stripe texture
+const bodyMaterial = new THREE.MeshPhongMaterial({ 
+    map: createStripedTexture(), // Apply texture
+    shininess: 80, // Add reflections
 });
 const rocketBody = new THREE.Mesh(bodyGeometry, bodyMaterial);
+rocketBody.castShadow = true; // Enable shadows
 scene.add(rocketBody);
 
-// Lighting
-const light = new THREE.PointLight(0xffffff, 1, 100);
-light.position.set(5, 5, 5);
-scene.add(light);
+// Lighting setup
+const ambientLight = new THREE.AmbientLight(0xffffff, 0.5); // Soft ambient light
+scene.add(ambientLight);
+
+const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+directionalLight.position.set(5, 10, 5);
+directionalLight.castShadow = true;
+scene.add(directionalLight);
 
 // Camera position
 camera.position.z = 10;
