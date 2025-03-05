@@ -5,19 +5,19 @@ scene.background = new THREE.Color(0xffffff); // White background
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
-renderer.shadowMap.enabled = true; // Enable shadows
+renderer.shadowMap.enabled = true;
 document.getElementById("container").appendChild(renderer.domElement);
 
 // Function to create striped texture dynamically
-function createStripedTexture() {
+function createStripedTexture(color) {
     const size = 512;
     const canvas = document.createElement("canvas");
     canvas.width = size;
     canvas.height = size;
     const ctx = canvas.getContext("2d");
 
-    // Gray base
-    ctx.fillStyle = "#808080";
+    // Base color
+    ctx.fillStyle = color;
     ctx.fillRect(0, 0, size, size);
 
     // Red stripes
@@ -26,31 +26,22 @@ function createStripedTexture() {
         ctx.fillRect(0, i, size, 15);
     }
 
-    // Rivets (small dots for extra detail)
-    ctx.fillStyle = "#555";
-    for (let x = 10; x < size; x += 50) {
-        for (let y = 10; y < size; y += 100) {
-            ctx.beginPath();
-            ctx.arc(x, y, 5, 0, Math.PI * 2);
-            ctx.fill();
-        }
-    }
-
     return new THREE.CanvasTexture(canvas);
 }
 
-// Rocket body (Gray with red stripes, metallic effect)
+// Rocket body
+let rocketColor = "#808080"; // Default gray
 const bodyGeometry = new THREE.CylinderGeometry(1, 1, 5, 64);
-const bodyMaterial = new THREE.MeshStandardMaterial({ 
-    map: createStripedTexture(),
-    metalness: 0.5, // Gives a metallic look
-    roughness: 0.3 // Slightly glossy
+let bodyMaterial = new THREE.MeshStandardMaterial({ 
+    map: createStripedTexture(rocketColor), 
+    metalness: 0.8, 
+    roughness: 0.3 
 });
 const rocketBody = new THREE.Mesh(bodyGeometry, bodyMaterial);
 rocketBody.castShadow = true;
 scene.add(rocketBody);
 
-// Base stand (Small cylinder)
+// Base stand
 const baseGeometry = new THREE.CylinderGeometry(1.2, 1.2, 0.5, 32);
 const baseMaterial = new THREE.MeshStandardMaterial({ color: 0x222222 });
 const base = new THREE.Mesh(baseGeometry, baseMaterial);
@@ -58,15 +49,15 @@ base.position.y = -2.75;
 base.receiveShadow = true;
 scene.add(base);
 
-// Glow effect (Subtle)
+// Glow effect
 const glowGeometry = new THREE.RingGeometry(1.2, 1.4, 32);
-const glowMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000, side: THREE.DoubleSide });
+const glowMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000, side: THREE.DoubleSide, transparent: true, opacity: 1 });
 const glow = new THREE.Mesh(glowGeometry, glowMaterial);
 glow.position.y = -2.5;
 glow.rotation.x = Math.PI / 2;
 scene.add(glow);
 
-// Lighting setup
+// Lighting
 const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
 scene.add(ambientLight);
 
@@ -78,18 +69,45 @@ scene.add(directionalLight);
 // Camera position
 camera.position.z = 10;
 
-// Animation loop (Rotating effect)
+// Animation loop
+let rotating = true;
 function animate() {
     requestAnimationFrame(animate);
-    rocketBody.rotation.y += 0.01;
-    glow.material.opacity = 0.5 + Math.sin(Date.now() * 0.002) * 0.5; // Soft glow pulsating effect
+    if (rotating) rocketBody.rotation.y += 0.01;
     renderer.render(scene, camera);
 }
 animate();
 
-// Handle window resize
-window.addEventListener("resize", () => {
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    camera.aspect = window.innerWidth / window.innerHeight;
-    camera.updateProjectionMatrix();
+// MENU CONTROLS
+
+// Change rocket color
+document.getElementById("colorSelect").addEventListener("change", (event) => {
+    if (event.target.value === "custom") {
+        document.getElementById("customColor").style.display = "block";
+    } else {
+        document.getElementById("customColor").style.display = "none";
+        let newColor = event.target.value === "gray" ? "#808080" : "#ffffff";
+        updateRocketColor(newColor);
+    }
+});
+
+// Custom color picker
+document.getElementById("customColor").addEventListener("input", (event) => {
+    updateRocketColor(event.target.value);
+});
+
+function updateRocketColor(color) {
+    bodyMaterial.map = createStripedTexture(color);
+    bodyMaterial.needsUpdate = true;
+}
+
+// Toggle rotation
+document.getElementById("toggleRotation").addEventListener("click", () => {
+    rotating = !rotating;
+    document.getElementById("toggleRotation").textContent = rotating ? "Stop Rotation" : "Start Rotation";
+});
+
+// Adjust glow intensity
+document.getElementById("glowIntensity").addEventListener("input", (event) => {
+    glow.material.opacity = parseFloat(event.target.value);
 });
