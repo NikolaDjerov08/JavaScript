@@ -34,8 +34,8 @@ let rocketColor = "#808080"; // Default gray
 const bodyGeometry = new THREE.CylinderGeometry(1, 1, 5, 64);
 let bodyMaterial = new THREE.MeshStandardMaterial({ 
     map: createStripedTexture(rocketColor), 
-    metalness: 0.5, 
-    roughness: 0.3
+    metalness: 0.8, 
+    roughness: 0.3 
 });
 const rocketBody = new THREE.Mesh(bodyGeometry, bodyMaterial);
 rocketBody.castShadow = true;
@@ -80,14 +80,19 @@ animate();
 
 // MENU CONTROLS
 
+// Toggle menu visibility
+document.getElementById("menuToggle").addEventListener("click", () => {
+    document.getElementById("menu").classList.toggle("active");
+});
+
 // Change rocket color
 document.getElementById("colorSelect").addEventListener("change", (event) => {
     if (event.target.value === "custom") {
         document.getElementById("customColor").style.display = "block";
     } else {
         document.getElementById("customColor").style.display = "none";
-        let grayColor = event.target.value === "gray" ? "#808080" : "#ffffff";
-        updateRocketColor(grayColor);
+        let newColor = event.target.value === "gray" ? "#808080" : "#ffffff";
+        updateRocketColor(newColor);
     }
 });
 
